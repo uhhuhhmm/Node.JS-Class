@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GJT</title>
+    <style>
+      .line {
+        overflow: hidden;
+      }
+
+      .seat {
+        margin: 2px;
+        float: left;
+        width: 30px;
+        height: 30px;
+        border-radius: 3px;
+      }
+
+      .enable {
+        background: grey;
+      }
+
+      .enable:hover {
+        background: black;
+      }
+
+      .disable {
+        background: red;
+      }
+
+      button {
+        position: absolute;
+        top: 430px;
+      }
+    </style>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      // 소켓 이벤트 실행
+      var socket = io.connect();
+      // 이벤트 연결
+      socket.on("reserve", function (data) {
+        var $target = $("div[data-x=" + data.x + "][data-y=" + data.y + "]");
+        $target.removeClass("enable");
+        $target.addClass("disable");
+      });
+
+      socket.on("cancel", function (data) {
+        var $cancel = $(".disable");
+        $cancel.removeClass("disable");
+        $cancel.addClass("enable");
+      });
+    </script>
+    <!-- 초기 좌석 생성 -->
+    <script>
+      $(document).ready(function () {
+        var onClickSeat = function () {
+          var x = $(this).attr("data-x");
+          var y = $(this).attr("data-y");
+
+          if (confirm("좌석 예약할래? ㅇㅅㅇ?")) {
+            $(this).off("click");
+            socket.emit("reserve", {
+              x: x,
+              y: y,
+            });
+          } else {
+            alert("ㅇ.ㅇ!");
+          }
+        };
+
+        var canCel = function () {
+          if (confirm("취소할래?")) {
+            socket.emit("cancel");
+          }
+        };
+
+        $("button").on("click", canCel);
+
+        // Ajax를 수행
+        $.getJSON("/seats", { dummy: new Date().getTime() }, function (data) {
+          $.each(data, function (indexY, line) {
+            var $line = $("<div></div>").addClass("line");
+            $.each(line, function (indexX, seat) {
+              var $output = $("<div></div>", {
+                class: "seat",
+                "data-x": indexX,
+                "data-y": indexY,
+              }).appendTo($line);
+              if (seat == 1) {
+                $output.addClass("enable").on("click", onClickSeat);
+              } else if (seat == 2) {
+                $output.addClass("disable");
+              }
+            });
+            $line.appendTo("body");
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <button>Cancel</button>
+  </body>
+</html>

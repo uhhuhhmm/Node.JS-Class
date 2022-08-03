@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      window.onload = function () {
+        var socket = io.connect(); // 소켓을 연결하는 동작
+
+        socket.on("send", function (data) {
+          alert(data);
+        });
+
+        document.getElementById("button").onclick = function () {
+          var txt = document.getElementById("text").value;
+          socket.emit("receive", txt);
+        };
+      };
+    </script>
+  </head>
+  <body>
+    <input type="text" name="" id="text" />
+    <input type="button" name="" id="button" value="echo" />
+  </body>
+</html>
