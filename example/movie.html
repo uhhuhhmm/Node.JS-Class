@@ -45,54 +45,91 @@
         var $target = $("div[data-x=" + data.x + "][data-y=" + data.y + "]");
         $target.removeClass("enable");
         $target.addClass("disable");
+        // 추가
+        $target.attr("seatst", "2");
       });
 
+      // 추가
       socket.on("cancel", function (data) {
-        var $cancel = $(".disable");
-        $cancel.removeClass("disable");
-        $cancel.addClass("enable");
+        var $target = $("div[data-x = " + data.x + "][data-y=" + data.y + "]");
+        $target.removeClass("disable");
+        $target.addClass("enable");
+        $target.attr("seatst", "1");
       });
+
+      // 내꺼
+      // socket.on("cancel", function (data) {
+      //   var $cancel = $(".disable");
+      //   $cancel.removeClass("disable");
+      //   $cancel.addClass("enable");
+      // });
     </script>
     <!-- 초기 좌석 생성 -->
     <script>
       $(document).ready(function () {
+        // 변수 선언
         var onClickSeat = function () {
           var x = $(this).attr("data-x");
           var y = $(this).attr("data-y");
 
-          if (confirm("좌석 예약할래? ㅇㅅㅇ?")) {
-            $(this).off("click");
+          // 여기
+          var seatst = $(this).attr("seatst");
+          if (seatst == 1 && confirm("좌석을 예약할래?")) {
             socket.emit("reserve", {
               x: x,
               y: y,
             });
+          }
+          // 추가
+          else if (seatst == 2 && confirm("좌석을 취소할래?")) {
+            socket.emit("cancel", {
+              x: x,
+              y: y,
+            });
           } else {
-            alert("ㅇ.ㅇ!");
+            alert("빠라뚜뚜");
           }
         };
 
-        var canCel = function () {
-          if (confirm("취소할래?")) {
-            socket.emit("cancel");
-          }
-        };
+        //   if (confirm("좌석 예약할래? ㅇㅅㅇ?")) {
+        //     $(this).off("click");
+        //     socket.emit("reserve", {
+        //       x: x,
+        //       y: y,
+        //     });
+        //   } else {
+        //     alert("ㅇ.ㅇ!");
+        //   }
 
-        $("button").on("click", canCel);
+        // cancel button
+        // var canCel = function () {
+        //   if (confirm("취소할래?")) {
+        //     socket.emit("cancel");
+        //   }
+        // };
+
+        // $("button").on("click", canCel);
 
         // Ajax를 수행
         $.getJSON("/seats", { dummy: new Date().getTime() }, function (data) {
+          // 좌석을 생성합니다
           $.each(data, function (indexY, line) {
             var $line = $("<div></div>").addClass("line");
             $.each(line, function (indexX, seat) {
+              // 문서 객체를 생성하고 변수 $line에 추가합니다
               var $output = $("<div></div>", {
+                // 위에 seat랑 다른 값 여긴 CSS seat.
                 class: "seat",
                 "data-x": indexX,
                 "data-y": indexY,
+                // 추가
+                seatst: seat,
               }).appendTo($line);
               if (seat == 1) {
+                // 좌석이 비어 있으면 enable 클래스와 click 리스너를 추가합니다
                 $output.addClass("enable").on("click", onClickSeat);
               } else if (seat == 2) {
-                $output.addClass("disable");
+                $output.addClass("disable").on("click", onClickSeat);
               }
             });
             $line.appendTo("body");
